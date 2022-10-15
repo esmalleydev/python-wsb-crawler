@@ -4,10 +4,88 @@ Use the ticker_import.py to insert your list of tickers to scan.
 
 Replace mysql connection information in app_wsb.py and ticker_importer.py
 
-
 Uses praw reddit
 
-schema used above each class
+# Schema
+
+## ticker
+These are the stock symbols and names. Ex: `V` would be the code, `Visa` would be the name. Listing taken from nasdaq. 
+```
++-----------+------------------+------+-----+---------+----------------+
+| Field     | Type             | Null | Key | Default | Extra          |
++-----------+------------------+------+-----+---------+----------------+
+| ticker_id | int(10) unsigned | NO   | PRI | NULL    | auto_increment |
+| code      | varchar(10)      | YES  |     | NULL    |                |
+| name      | varchar(255)     | YES  |     | NULL    |                |
+| inactive  | tinyint(1)       | NO   |     | 0       |                |
+| deleted   | tinyint(1)       | NO   |     | 0       |                |
++-----------+------------------+------+-----+---------+----------------+
+```
+
+## run
+Everytime the script runs, it will insert a new `run` row.
+
+```
++-----------+------------------+------+-----+---------------------+----------------+
+| Field     | Type             | Null | Key | Default             | Extra          |
++-----------+------------------+------+-----+---------------------+----------------+
+| run_id    | int(10) unsigned | NO   | PRI | NULL                | auto_increment |
+| thread_id | int(10) unsigned | NO   |     | NULL                |                |
+| completed | tinyint(1)       | YES  |     | 0                   |                |
+| timestamp | datetime         | YES  |     | current_timestamp() |                |
+| deleted   | tinyint(1)       | YES  |     | 0                   |                |
++-----------+------------------+------+-----+---------------------+----------------+
+```
+
+## thread
+A `thread` would be the thread / post in a subreddit. `submission_id` points to the reddit id.
+```
++---------------+------------------+------+-----+---------+----------------+
+| Field         | Type             | Null | Key | Default | Extra          |
++---------------+------------------+------+-----+---------+----------------+
+| thread_id     | int(10) unsigned | NO   | PRI | NULL    | auto_increment |
+| submission_id | varchar(255)     | NO   |     | NULL    |                |
+| title         | varchar(255)     | YES  |     | NULL    |                |
++---------------+------------------+------+-----+---------+----------------+
+```
+
+## user
+The reddit user.
+```
++---------------+------------------+------+-----+---------------------+----------------+
+| Field         | Type             | Null | Key | Default             | Extra          |
++---------------+------------------+------+-----+---------------------+----------------+
+| user_id       | int(10) unsigned | NO   | PRI | NULL                | auto_increment |
+| id            | varchar(255)     | YES  |     | NULL                |                |
+| name          | varchar(255)     | YES  |     | NULL                |                |
+| created_utc   | int(11) unsigned | YES  |     | NULL                |                |
+| link_karma    | bigint(20)       | YES  |     | NULL                |                |
+| comment_karma | bigint(20)       | YES  |     | NULL                |                |
+| last_updated  | datetime         | NO   |     | current_timestamp() |                |
+| deleted       | tinyint(1)       | NO   |     | 0                   |                |
++---------------+------------------+------+-----+---------------------+----------------+
+```
+
+## user_mention
+The important table, points to the run, which user made the comment, which ticker they talked about, and on what thread.
+```
++-------------------+------------------+------+-----+---------------------+----------------+
+| Field             | Type             | Null | Key | Default             | Extra          |
++-------------------+------------------+------+-----+---------------------+----------------+
+| user_mention_id   | int(10) unsigned | NO   | PRI | NULL                | auto_increment |
+| user_id           | int(10) unsigned | NO   | MUL | NULL                |                |
+| ticker_id         | int(10) unsigned | NO   | MUL | NULL                |                |
+| thread_id         | int(10) unsigned | NO   | MUL | NULL                |                |
+| run_id            | int(10) unsigned | NO   | MUL | NULL                |                |
+| id                | varchar(255)     | YES  | MUL | NULL                |                |
+| comment_karma     | int(10) unsigned | YES  |     | NULL                |                |
+| sentiment_percent | int(10) unsigned | YES  |     | NULL                |                |
+| timestamp         | datetime         | NO   |     | current_timestamp() |                |
+| deleted           | tinyint(1)       | NO   |     | 0                   |                |
++-------------------+------------------+------+-----+---------------------+----------------+
+```
+
+
 
 # Discord webhooks
 Replace discord_webhook_url in app_wsb.py to post results in Discord
